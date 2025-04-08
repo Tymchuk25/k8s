@@ -35,7 +35,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 2Gi
+      storage: 200Mi
 
 ---
 apiVersion: apps/v1
@@ -44,7 +44,7 @@ metadata:
   name: gogs
   namespace: gogs
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: gogs
@@ -57,15 +57,15 @@ spec:
     spec:
       containers:
       - name: gogs
-        image: gogs/gogs:0.13
+        image: vitaliitymchuk/gogs:0.3
         ports:
         - containerPort: 22
           name: ssh
         - containerPort: 3000
           name: http
-        env:
-        - name: SOCAT_LINK
-          value: "false"
+#        env:
+#        - name: SOCAT_LINK
+#          value: "false"
         volumeMounts:
         - name: gogs-persistent-storage
           mountPath: /data
@@ -78,59 +78,42 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gogs-svc
+  name: gogs-service
   namespace: gogs
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: gogs
   ports:
   - name: ssh
     protocol: TCP
-    port: 10022
+    port: 2222
     targetPort: 22
-    nodePort: 30022
   - name: http
     protocol: TCP
-    port: 18080
+    port: 3000
     targetPort: 3000
-    nodePort: 30080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gogs-ingress
+  namespace: gogs
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
+spec:
+  rules:
+  - host: gogs.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gogs-service
+            port:
+              number: 3000
 
-# ---
-# apiVersion: extensions/v1beta1
-# kind: Ingress
-# metadata:
-#   name: gogs-ingress
-#   namespace: gogs
-#   annotations:
-#     nginx.ingress.kubernetes.io/rewrite-target: /
-# spec:
-#   rules:
-#   - host: gogs.local
-#     http:
-#       paths:
-#       - path: /
-#         backend:
-#           serviceName: gogs-svc
-#           servicePort: 18080
-
-# ---
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: gogs-ingress
-#   namespace: gogs
-#   annotations:
-#     nginx.ingress.kubernetes.io/rewrite-target: /
-# spec:
-#   rules:
-#   - host: gogs.local
-#     http:
-#       paths:
-#       - path: /
-#         pathType: Prefix
-#         backend:
-#           service:
-#             name: gogs-svc
-#             port:
-#               number: 18080

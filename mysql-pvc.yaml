@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: gogs
+  name: mysql-pvc
+  labels:
+    app: mysql
+spec:
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
