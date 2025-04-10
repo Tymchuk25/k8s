@@ -50,30 +50,16 @@ spec:
     metadata:
       labels:
         app: gogs
-        # istio-injection: enabled
         version: v1
     spec:
       containers:
       - name: gogs
-        image: vitaliitymchuk/gogs:env-enable
+        image: vitaliitymchuk/gogs:0.2
         ports:
         - containerPort: 22
           name: ssh
         - containerPort: 3000
           name: http
-        env:
-        - name: DB_HOST
-          value: "mysql-service:3306"
-        - name: DB_NAME
-          value: "gogs"
-        - name: DB_USER
-          value: "gogs"
-        - name: DB_PASSWORD
-          value: "gogs"
-        - name: GOGS_DOMAIN
-          value: "gogs.local"
-        - name: GOGS_EXTERNAL_URL
-          value: "http://gogs.local:3000"
         volumeMounts:
         - name: gogs-persistent-storage
           mountPath: /data
@@ -114,8 +100,8 @@ metadata:
     nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
 spec:
   rules:
-  - host: gogs.local
-    http:
+#  - host: gogs.local
+   - http:
       paths:
       - path: /
         pathType: Prefix
