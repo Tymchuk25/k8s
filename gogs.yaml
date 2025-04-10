@@ -3,8 +3,6 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: gogs
-  # labels:
-  #   istio-injection: enabled
 
 # ---
 # apiVersion: v1
@@ -57,15 +55,25 @@ spec:
     spec:
       containers:
       - name: gogs
-        image: vitaliitymchuk/gogs:0.3
+        image: vitaliitymchuk/gogs:env-enable
         ports:
         - containerPort: 22
           name: ssh
         - containerPort: 3000
           name: http
-#        env:
-#        - name: SOCAT_LINK
-#          value: "false"
+        env:
+        - name: DB_HOST
+          value: "mysql-service:3306"
+        - name: DB_NAME
+          value: "gogs"
+        - name: DB_USER
+          value: "gogs"
+        - name: DB_PASSWORD
+          value: "gogs"
+        - name: GOGS_DOMAIN
+          value: "gogs.local"
+        - name: GOGS_EXTERNAL_URL
+          value: "http://gogs.local:3000"
         volumeMounts:
         - name: gogs-persistent-storage
           mountPath: /data
